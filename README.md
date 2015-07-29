@@ -10,6 +10,10 @@ If you have any ideas or even better pull requests, please let me know :)
 
 If you like Atom maybe you will like my blog www.atomtips.com.
 
+## How to Use
+
+Simply press alt-cmd-n, or ctrl-alt-n, depending on your platform.
+
 ## Example
 ![advanced-new-file](https://cloud.githubusercontent.com/assets/3289225/5792505/81f41c72-9f1b-11e4-9085-38cfb832383c.gif)
 
