@@ -1,3 +1,4 @@
+{BufferedProcess} = require 'atom'
 {$, $$, View, TextEditorView} = require 'atom-space-pen-views'
 fs = require 'fs'
 path = require 'path'
@@ -32,15 +33,42 @@ class AdvancedFileView extends View
 
   @activate: (state) ->
     @advancedFileView = new AdvancedFileView(state.advancedFileViewState)
+    try
+      @seenNotification = JSON.parse(state).seenNotification
+    catch
+      @seenNotification = false
+
+  @serialize: ->
+    return JSON.stringify({seenNotification: @seenNotification})
 
   @deactivate: ->
     @advancedFileView.detach()
 
   @content: (params)->
     @div class: 'advanced-new-file', =>
-      @p outlet:'message', class:'icon icon-file-add', "Enter the path for the new file/directory. Directories end with a '" + path.sep + "'."
-      @subview 'miniEditor', new TextEditorView({mini:true})
-      @ul class: 'list-group', outlet: 'directoryList'
+      @div outlet: 'mainUI', =>
+        @p outlet:'message', class:'icon icon-file-add', "Enter the path for the new file/directory. Directories end with a '" + path.sep + "'."
+        @subview 'miniEditor', new TextEditorView({mini:true})
+        @ul class: 'list-group', outlet: 'directoryList'
+      @div outlet: 'notificationUI', =>
+        @h2 class:'icon icon-info', "Advanced New File is no longer maintained"
+        @p =>
+          @raw """
+            advanced-new-file won't be getting any more updates, but the project
+            has been forked as <a href="https://atom.io/packages/advanced-open-file">advanced-open-file</a>.
+            The fork opens files as well as creating them, and adds several new features.
+          """
+        @p =>
+          @text """
+            Click the Update button below to replace advanced-new-file with
+            advanced-open-file (the current window will be reloaded). Otherwise,
+            click the No Thanks button and this message will not appear again.
+          """
+        @div class: 'btn-toolbar', =>
+          @div class: 'btn-group', =>
+            @button outlet: 'closeNotification', class: 'btn', "No thanks"
+          @div class: 'btn-group', =>
+            @button outlet: 'replacePackageBtn', class: 'btn btn-success', "Update"
 
   @detaching: false,
 
@@ -199,6 +227,23 @@ class AdvancedFileView extends View
     @previouslyFocusedElement = $(':focus')
     @panel = atom.workspace.addModalPanel(item: this)
 
+    if @seenNotification
+      @mainUI.removeClass 'hidden'
+      @notificationUI.addClass 'hidden'
+    else
+      @notificationUI.removeClass 'hidden'
+      @mainUI.addClass 'hidden'
+
+    @closeNotification.on 'click', (ev) =>
+      @seenNotification = true
+      @mainUI.removeClass 'hidden'
+      @notificationUI.addClass 'hidden'
+
+    @replacePackageBtn.on 'click', (ev) =>
+      @seenNotification = true
+      @detach()
+      @replacePackage()
+
     @miniEditor.on 'focusout', => @detach() unless @detaching
     @miniEditor.focus()
 
@@ -268,3 +313,29 @@ class AdvancedFileView extends View
       longestCommonPrefix += nextCharacter
 
     return longestCommonPrefix
+
+  executeApm: (args, exit) ->
+    new BufferedProcess
+      command: atom.packages.getApmPath()
+      args: args
+      stdout: (output) ->
+      stderr: (output) ->
+      exit: exit
+
+  replacePackage: ->
+    info = atom.notifications.addInfo 'Installing advanced-open-file...'
+    @executeApm ['install', 'advanced-open-file'], (exitCode) =>
+      if exitCode is 1
+        info.dismiss()
+        atom.notifications.addError 'Failed to install advanced-open-file, please install it manually.'
+      else
+        @executeApm ['uninstall', 'advanced-new-file'], (exitCode) ->
+          info.dismiss()
+          if exitCode is 0
+            atom.notifications.addSuccess(
+              'advanced-open-file installed successfully!',
+              detail: 'Atom will reload in a few seconds...'
+            )
+            setTimeout (-> atom.reload()), 3000
+          else
+            atom.notifications.addError 'Failed to uninstall advanced-new-file, please uninstall it manually.'
