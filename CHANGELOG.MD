@@ -1,3 +1,8 @@
+0.4.4 (May 22 2015)
+===================
+
+* Added message for switching to advanced open file.
+
 0.4.3 (May 22 2015)
 ===================
 

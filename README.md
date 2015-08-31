@@ -1,5 +1,7 @@
 # Advanced New File package
 
+## Please switch to Advanced Open File
+
 Advanced New File is fork of existing package Fancy New File. First of all let me thank rev087 - author of Fancy New File for great work.
 I forked this folder because old one wasn't maintained for few months and I couldn't contact the author.
 
