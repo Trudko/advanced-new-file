@@ -14,8 +14,6 @@ It supports create new files and directory tree by typing a relative path with b
 
 If you have any ideas or even better pull requests, please let me know :)
 
-If you like Atom maybe you will like my blog www.atomtips.com.
-
 ## How to Use
 
 Simply press alt-cmd-n, or ctrl-alt-n, depending on your platform.
